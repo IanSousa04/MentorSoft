@@ -17,9 +17,10 @@ import Button from "../components/ui/Button";
 import { getResposta } from "../services/GeminiService";
 import SelectTreinador from "../components/SelectTreinador";
 import useSnack from "../hooks/useSnack";
+import { formatarTextoMensagem, renderMarkdown } from "../helpers/helper";
 
 const Chat: React.FC = () => {
-  const [mensagens, setMensagens] = useState<Mensagem[]>(mensagensData);
+  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
   const [digitacao, setDigitacao] = useState<boolean>(false); // Controle de "digitação"
   const chatRef = useRef<HTMLDivElement>(null);
@@ -34,41 +35,50 @@ const Chat: React.FC = () => {
   }, [mensagens]);
 
   const enviarMensagem = async () => {
-    if (!treinadorSelecionado) {
-      showMessage("Selecione um treinador para iniciar o treinamento.", "info");
-      return;
-    }
-
-    if (novaMensagem.trim()) {
-      const novaMensagemObj: Mensagem = {
-        id: (mensagens.length + 1).toString(),
-        texto: novaMensagem,
-        remetente: "usuario",
-        timestamp: new Date().toISOString(),
-      };
-
-      setMensagens([...mensagens, novaMensagemObj]);
-      setNovaMensagem("");
-
-      // Simular resposta do treinador
-      setDigitacao(true); // Iniciar o indicador de digitação
-
-      const resposta = await getResposta(
-        novaMensagem,
-        treinadorSelecionado.prompt
-      );
-
-      if (resposta && resposta?.trim() !== "") {
-        const respostaIA: Mensagem = {
-          id: (mensagens.length + 2).toString(),
-          texto: resposta,
-          remetente: "ia",
-          timestamp: new Date().toISOString(),
-        };
-        setMensagens((msgs) => [...msgs, respostaIA]);
+    try {
+      if (!treinadorSelecionado) {
+        showMessage(
+          "Selecione um treinador para iniciar o treinamento.",
+          "info"
+        );
+        return;
       }
 
-      setDigitacao(false); // Parar o indicador de digitação
+      if (novaMensagem.trim()) {
+        const novaMensagemObj: Mensagem = {
+          id: (mensagens.length + 1).toString(),
+          texto: novaMensagem,
+          remetente: "usuario",
+          timestamp: new Date().toISOString(),
+        };
+
+        setMensagens([...mensagens, novaMensagemObj]);
+        setNovaMensagem("");
+
+        // Simular resposta do treinador
+        setDigitacao(true); // Iniciar o indicador de digitação
+
+        const resposta = await getResposta(
+          novaMensagem,
+          treinadorSelecionado.prompt,
+          [...mensagens, novaMensagemObj]
+        );
+
+        if (resposta && resposta?.trim() !== "") {
+          const respostaIA: Mensagem = {
+            id: (mensagens.length + 2).toString(),
+            texto: resposta,
+            remetente: "ia",
+            timestamp: new Date().toISOString(),
+          };
+          setMensagens((msgs) => [...msgs, respostaIA]);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      showMessage("Falha ao processar mensagem!", "error");
+    } finally {
+      setDigitacao(false);
     }
   };
 
@@ -112,17 +122,19 @@ const Chat: React.FC = () => {
         flexDirection: "column",
       }}
     >
-      <Grid item xs={12} sx={{ mb: 2 }}>
-        <SelectTreinador
-          value={treinadorSelecionado}
-          setValue={(obj) => {
-            if (obj) {
-              setTreinadorSelecionado(obj);
-              iniciarTreinamento(obj);
-            }
-          }}
-        />
-      </Grid>
+        <Grid item xs={12} sx={{ mb: 2 }}>
+          <SelectTreinador
+            value={treinadorSelecionado}
+            setValue={(obj) => {
+              if (obj) {
+                setTreinadorSelecionado(obj);
+                iniciarTreinamento(obj);
+              }
+            }}
+          />
+        </Grid>
+       
+
 
       {/* Container principal do chat */}
       <Paper
@@ -167,7 +179,22 @@ const Chat: React.FC = () => {
                     mensagem.remetente === "usuario" ? "white" : "text.primary",
                 }}
               >
-                <Box sx={{ mb: 1 }}>{mensagem.texto}</Box>
+                <Box sx={{ mb: 1 }}>
+                  {
+                    // formatarTextoMensagem(
+                    //   mensagem.texto
+
+                    // )
+
+                    <Typography
+                      sx={{
+                        // whiteSpace: "pre-wrap",
+                        lineHeight: mensagem.remetente === "ia" ? 2 : 1.3,
+                      }}
+                      dangerouslySetInnerHTML={renderMarkdown(mensagem.texto)} // Usa o método renderMarkdown para interpretar o markdown
+                    />
+                  }
+                </Box>
                 <Box
                   sx={{
                     fontSize: "0.75rem",

@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Mensagem } from "../types";
 const API_KEY = "AIzaSyD__ke0a9uAw10yzSl75LfIwvzNWkiUEtM";
 
 export async function generateEmbedding(text: string) {
@@ -170,23 +171,49 @@ export async function gerarPrompt(text: string) {
   }
 }
 
-export async function getResposta(text: string | null, prompt: string) {
+export async function getResposta(
+  text: string | null,
+  prompt: string,
+  mensagens?: Mensagem[]
+) {
   try {
     const API_KEY = "AIzaSyD__ke0a9uAw10yzSl75LfIwvzNWkiUEtM";
     const genAI = new GoogleGenerativeAI(API_KEY);
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro-latest",
-      systemInstruction: `Você é um treinador especializado. Aqui está o objetivo do treinamento: ${prompt}. Faça perguntas uma de cada vez, forneça feedback e ajude o usuário a melhorar suas habilidades. Interaja com o usuário de forma construtiva e interativa.`,
+      // model: "gemini-1.5-pro-latest",
+      model: "gemini-2.0-flash-lite",
+      systemInstruction: `Simule um treinamento interativo com o usuário, com base no seguinte objetivo: ${prompt}. 
+Faça no máximo 2 perguntas claras e objetivas, uma de cada vez, e forneça feedback construtivo, sempre de forma breve e eficaz, para ajudar o usuário a aprimorar suas habilidades. 
+Mantenha as respostas simples, diretas e fáceis de entender, evitando complexidade excessiva. 
+Crie um ambiente de conversa focado no aprendizado contínuo, mas seja sincero e realista.
+Ao final, avise o usuário sobre o encerramento do treinamento, fornecendo um feedback geral e positivo sobre o progresso.
+`,
     });
 
-    const chat = model.startChat();
-    // Se `text` estiver vazio ou nulo, fornece uma introdução padrão
+    // Converte mensagens para o formato correto
+    const history =
+      mensagens?.map((msg) => ({
+        role: msg.remetente === "usuario" ? "user" : "model",
+        parts: [{ text: msg.texto }],
+      })) || [];
+
+    if (history.length > 0 && history[0].role === "model") {
+      history.unshift({
+        role: "user",
+        parts: [{ text: "Vamos começar o treinamento." }],
+      });
+    }
+
+    const chat = model.startChat({ history });
+
     const message =
       text?.trim() ||
-      "Inicie o treinamento com uma introdução simplificada de como vai ser, e em seguida faça a primeira pergunta.";
+      "Inicie o treinamento com uma introdução simples e resumida de como vai ser, e em seguida faça a primeira pergunta.";
 
     const result = await chat.sendMessage(message);
+    console.log("resposta", result.response.text());
+
     return result.response.text();
   } catch (error: any) {
     console.error(error);

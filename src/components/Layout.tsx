@@ -1,6 +1,7 @@
 import React from 'react';
-import { Menu, Home, Users, Settings, MessageSquare, BarChart3 } from 'lucide-react';
+import { Home, Chat, Settings, BarChart, People } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
+import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 
 interface NavItemProps {
   to: string;
@@ -12,14 +13,19 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ to, icon, text, active }) => (
   <Link
     to={to}
-    className={`flex items-center space-x-2 p-3 rounded-lg transition-colors ${
-      active
-        ? 'bg-blue-100 text-blue-700'
-        : 'hover:bg-gray-100 text-gray-700'
-    }`}
+    style={{
+      textDecoration: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '12px 16px',
+      borderRadius: '8px',
+      backgroundColor: active ? '#E3F2FD' : 'transparent',
+      color: active ? '#1E88E5' : '#616161',
+      transition: 'background-color 0.3s ease',
+    }}
   >
     {icon}
-    <span>{text}</span>
+    <Typography sx={{ marginLeft: 2 }}>{text}</Typography>
   </Link>
 );
 
@@ -27,55 +33,64 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" >
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg">
-        <div className="p-4 border-b">
-          <div className="flex items-center space-x-2">
-            <Menu className="w-6 h-6 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-800">MentorSoft</h1>
-          </div>
-        </div>
-        <nav className="p-4 space-y-2">
+      <Drawer
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: 240,
+            boxSizing: 'border-box',
+            borderRight: 0,
+            backgroundColor: 'white',
+          },
+        }}
+        variant="permanent"
+        anchor="left"
+      >
+        <Box sx={{ padding: 3, borderBottom: '1px solid #E0E0E0' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Home sx={{ color: '#1E88E5', fontSize: 30 }} />
+            <Typography variant="h6" sx={{ marginLeft: 2, fontWeight: 'bold' }}>
+              MentorSoft
+            </Typography>
+          </Box>
+        </Box>
+        <List>
           <NavItem
             to="/"
-            icon={<Home className="w-5 h-5" />}
+            icon={<Home />}
             text="Início"
             active={location.pathname === '/'}
           />
-          <NavItem
+          {/* <NavItem
             to="/treinadores"
-            icon={<Users className="w-5 h-5" />}
+            icon={<People />}
             text="Treinadores"
             active={location.pathname === '/treinadores'}
-          />
-          <NavItem
-            to="/configuracao"
-            icon={<Settings className="w-5 h-5" />}
-            text="Configuração"
-            active={location.pathname === '/configuracao'}
-          />
+          /> */}
           <NavItem
             to="/chat"
-            icon={<MessageSquare className="w-5 h-5" />}
+            icon={<Chat />}
             text="Chat"
             active={location.pathname === '/chat'}
           />
-          <NavItem
+          {/* <NavItem
             to="/relatorio"
-            icon={<BarChart3 className="w-5 h-5" />}
+            icon={<BarChart />}
             text="Relatório"
             active={location.pathname === '/relatorio'}
-          />
-        </nav>
-      </aside>
+          /> */}
+        </List>
+      </Drawer>
 
       {/* Main content */}
-      <main className="flex-1 p-8">
+      <Box component="main" sx={{ flexGrow: 1, padding: 3 }}>
         {children}
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
-export default Layout
+export default Layout;

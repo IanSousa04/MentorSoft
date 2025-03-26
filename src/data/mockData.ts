@@ -1,4 +1,4 @@
-import { Treinador, Pergunta, Mensagem, Relatorio } from '../types';
+import { Treinador, Pergunta,  Relatorio } from '../types';
 
 export const treinadores: Treinador[] = [
   {
@@ -34,20 +34,6 @@ export const perguntas: Pergunta[] = [
   },
 ];
 
-export const mensagens: Mensagem[] = [
-  // {
-  //   id: '1',
-  //   texto: 'Olá! Como posso ajudar você hoje?',
-  //   remetente: 'ia',
-  //   timestamp: '2024-03-15T10:00:00',
-  // },
-  // {
-  //   id: '2',
-  //   texto: 'Gostaria de aprender sobre técnicas de vendas',
-  //   remetente: 'usuario',
-  //   timestamp: '2024-03-15T10:01:00',
-  // },
-];
 
 export const relatorio: Relatorio = {
   pontuacao: 85,
